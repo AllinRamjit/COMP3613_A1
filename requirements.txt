@@ -14,3 +14,17 @@ psycopg2-binary==2.9.9
 python-dotenv==1.0.1
 rich==13.4.2
 
+click
+Flask
+Flask-Admin
+Flask-Cors
+Flask-JWT-Extended
+Flask-Migrate
+Flask-Reuploaded
+Flask-SQLAlchemy
+gevent
+gunicorn
+psycopg2-binary
+pytest
+python-dotenv
+Werkzeug
