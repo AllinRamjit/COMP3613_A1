@@ -140,7 +140,11 @@ def add_street(name):
 def update_user_street(user_id, street_id):
     try:
         user = get_user(user_id, 'resident')
+        if not user:
+            return
         street = get_street(street_id)
+        if not street:
+            return
         user.street_id = street.id
         db.session.commit()
         print(f'User {user.username} updated with street {street.name}')
