@@ -11,8 +11,8 @@ class Request(db.Model):
     status = db.Column(db.String(20), nullable=False, default="requested")
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    order = db.relationship('route', backref=db.backref('stop_requests', lazy=True))
-    resident = db.relationship('user', backref=db.backref('stop_requests', lazy=True))
+    route = db.relationship('Route', backref=db.backref('stop_requests', lazy=True))
+    resident = db.relationship('User', backref=db.backref('stop_requests', lazy=True))
 
 
     def __repr__(self):
