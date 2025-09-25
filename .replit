@@ -37,3 +37,8 @@ externalPort = 80
 [[ports]]
 localPort = 35929
 externalPort = 3000
+
+[deployment]
+deploymentTarget = "autoscale"
+run = ["gunicorn", "--bind=0.0.0.0:5000", "--reuse-port", "wsgi:app"]
+build = ["pip", "install", "-r", "requirements.txt"]
