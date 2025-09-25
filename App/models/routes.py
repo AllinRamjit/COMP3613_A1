@@ -15,6 +15,14 @@ class Route(db.Model):
     driver = db.relationship("User", backref=db.backref("Route", lazy=True))
     street = db.relationship("Street", backref=db.backref("Route", lazy=True))
 
+    def __init__(self, driver_id, street_id, scheduled_time, status="scheduled", current_lat=None, current_lng=None):
+        self.driver_id = driver_id
+        self.street_id = street_id
+        self.scheduled_time = scheduled_time
+        self.status = status
+        self.current_lat = current_lat
+        self.current_lng = current_lng
+
     def __repr__(self):
         return f"<Drive id={self.id} driver_id={self.driver_id} street_id={self.street_id} time={self.scheduled_time} status={self.status}>"
 

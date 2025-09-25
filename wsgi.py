@@ -188,7 +188,9 @@ def list_routes(status):
 @user_cli.command("view-inbox", help="List all requests")
 @click.option("--resident_id", required=False, type=int, help="Filter requests by resident ID")
 def view_inbox(resident_id):
-    resident = get_user(resident_id, user_role="resident") 
+    resident = get_user(resident_id, user_role="resident")
+    if not resident:
+        return
     if not resident.street_id:
         print(f"Resident {resident.username} does not have a street assigned.")
         return
