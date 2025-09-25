@@ -217,7 +217,11 @@ def view_inbox(resident_id):
 def request_stop(resident_id,route_id, quantity, notes):
     try:
         resident = get_user(resident_id, user_role="resident")
+        if not resident:
+            return
         route = get_route(route_id)
+        if not route:
+            return
         if route.status not in ["scheduled", "on the way"]:
             print(f"Cannot request a stop for route {route.id} with status {route.status}.")
             return
@@ -287,6 +291,8 @@ def update_location(driver_id, lat, lng):
 @click.option("--status", required=True, type=click.Choice(["scheduled", "on the way", "arrived", "completed", "cancelled"], case_sensitive=False), help="New status of the route")
 def set_driver_status(route_id, status):
     route = get_route(route_id)
+    if not route:
+        return
     old_status = route.status
     route.status = status
     db.session.commit()
@@ -297,6 +303,8 @@ def set_driver_status(route_id, status):
 @click.option("--route_id", required=True, type=int, help="ID of the route to start")
 def start_route(route_id):
     route = get_route(route_id)
+    if not route:
+        return
     if route.status != "scheduled":
         print(f"Cannot start route {route.id} with status {route.status}.")
         return
@@ -309,6 +317,8 @@ def start_route(route_id):
 @click.option("--route_id", required=True, type=int, help="ID of the route to mark as arrived")
 def arrive(route_id):
     route = get_route(route_id)
+    if not route:
+        return
     if route.status != "on the way":
         print(f"Cannot mark route {route.id} as arrived with status {route.status}.")
         return
@@ -320,6 +330,8 @@ def arrive(route_id):
 @click.option("--route_id", required=True, type=int, help="ID of the route to complete")
 def complete_route(route_id):
     route = get_route(route_id)
+    if not route:
+        return
     if route.status != "arrived":
         print(f"Cannot complete route {route.id} with status {route.status}.")
         return
@@ -331,6 +343,8 @@ def complete_route(route_id):
 @click.option("--route_id", required=True, type=int, help="ID of the route to cancel")
 def cancel_route(route_id):
     route = get_route(route_id)
+    if not route:
+        return
     if route.status in ["completed", "cancelled"]:
         print(f"Cannot cancel route {route.id} with status {route.status}.")
         return
@@ -342,6 +356,8 @@ def cancel_route(route_id):
 @click.option("--route_id", required=True, type=int, help="ID of the route to list stops for")
 def list_stops(route_id):
     route = get_route(route_id)
+    if not route:
+        return
     requests = Request.query.filter(Request.route_id == route.id).order_by(Request.created_at.asc()).all()
     if not requests:
         print(f"No stops found for route {route.id}.")
@@ -349,7 +365,10 @@ def list_stops(route_id):
     print(f"Stops for Route {route.id}:")
     for req in requests:
         resident = User.query.get(req.resident_id)
-        print(f"Request ID: {req.id}, Resident: {resident.username}, Quantity: {req.quantity}, Notes: {req.notes}, Status: {req.status}, Created At: {req.created_at.isoformat()}")
+        if resident:
+            print(f"Request ID: {req.id}, Resident: {resident.username}, Quantity: {req.quantity}, Notes: {req.notes}, Status: {req.status}, Created At: {req.created_at.isoformat()}")
+        else:
+            print(f"Request ID: {req.id}, Resident: Unknown, Quantity: {req.quantity}, Notes: {req.notes}, Status: {req.status}, Created At: {req.created_at.isoformat()}")
 
 
 @user_cli.command("import-test-data", help="Import test data from JSON file")
