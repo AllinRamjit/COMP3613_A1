@@ -274,14 +274,18 @@ flask user driver-status --driver_id 1
 | **Users** | `flask user create` | Create new user |
 | **Users** | `flask user list` | List all users |
 | **Streets** | `flask user add-street` | Add new street |
+| **Streets** | `flask user update-user-street` | Update user's street assignment |
 | **Routes** | `flask user schedule-route` | Schedule new route |
 | **Routes** | `flask user list-routes` | View all routes |
 | **Routes** | `flask user start-route` | Start route |
 | **Routes** | `flask user arrive` | Mark arrival |
 | **Routes** | `flask user complete-route` | Complete route |
+| **Routes** | `flask user cancel-route` | Cancel route |
+| **Routes** | `flask user set-route-status` | Set route status manually |
 | **Requests** | `flask user request-stop` | Create stop request |
 | **Requests** | `flask user manage-requests` | Handle requests |
 | **Requests** | `flask user list-stops` | View route stops |
+| **Requests** | `flask user view-inbox` | View resident inbox |
 | **Drivers** | `flask user driver-status` | Check driver status |
 | **Drivers** | `flask user update-location` | Update GPS location |
 | **Testing** | `flask test user` | Run test suite |
