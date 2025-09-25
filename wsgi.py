@@ -28,6 +28,7 @@ def parse_time(iso_string):
         return datetime.fromisoformat(iso_string)
     except Exception:
         print("Invalid datetime format. Use ISO format.")
+        return None
 
 def get_user(user_id: int, user_role:Optional[str] = None):
     user = User.query.get(user_id)
@@ -130,6 +131,7 @@ app.cli.add_command(test)
 def add_street(name):
     if Street.query.filter_by(name=name).first():
         print(f'Street {name} already exists')
+        return
     s = Street(name=name)
     db.session.add(s)
     db.session.commit()
@@ -163,6 +165,8 @@ def schedule_route(driver_id, street_id, time):
         if not driver or not street:
             return
         route_time = parse_time(time)
+        if not route_time:
+            return
         # Create a new route instead of modifying the driver
         route = Route(driver_id=driver.id, street_id=street.id, scheduled_time=route_time, status='scheduled')
         db.session.add(route)
