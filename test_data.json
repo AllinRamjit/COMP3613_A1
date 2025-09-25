@@ -1,0 +1,123 @@
+{
+  "streets": [
+    {"name": "Main Street"},
+    {"name": "Oak Avenue"},
+    {"name": "Pine Road"},
+    {"name": "Elm Drive"},
+    {"name": "Maple Lane"},
+    {"name": "Cedar Boulevard"},
+    {"name": "Birch Way"},
+    {"name": "Willow Street"}
+  ],
+  "users": [
+    {"username": "alice_driver", "password": "alicepass123", "role": "driver", "street_id": null},
+    {"username": "bob_driver", "password": "bobpass123", "role": "driver", "street_id": null},
+    {"username": "charlie_driver", "password": "charliepass123", "role": "driver", "street_id": null},
+    {"username": "diana_driver", "password": "dianapass123", "role": "driver", "street_id": null},
+    {"username": "john_resident", "password": "johnpass123", "role": "resident", "street_name": "Main Street"},
+    {"username": "mary_resident", "password": "marypass123", "role": "resident", "street_name": "Oak Avenue"},
+    {"username": "peter_resident", "password": "peterpass123", "role": "resident", "street_name": "Pine Road"},
+    {"username": "susan_resident", "password": "susanpass123", "role": "resident", "street_name": "Elm Drive"},
+    {"username": "tom_resident", "password": "tompass123", "role": "resident", "street_name": "Maple Lane"},
+    {"username": "lisa_resident", "password": "lisapass123", "role": "resident", "street_name": "Cedar Boulevard"},
+    {"username": "admin_user", "password": "adminpass123", "role": "user", "street_id": null},
+    {"username": "manager_user", "password": "managerpass123", "role": "user", "street_id": null}
+  ],
+  "routes": [
+    {
+      "driver_username": "alice_driver",
+      "street_name": "Main Street",
+      "scheduled_time": "2025-09-26T09:00:00",
+      "status": "scheduled"
+    },
+    {
+      "driver_username": "alice_driver",
+      "street_name": "Oak Avenue", 
+      "scheduled_time": "2025-09-26T11:30:00",
+      "status": "scheduled"
+    },
+    {
+      "driver_username": "bob_driver",
+      "street_name": "Pine Road",
+      "scheduled_time": "2025-09-26T10:15:00",
+      "status": "scheduled"
+    },
+    {
+      "driver_username": "bob_driver",
+      "street_name": "Elm Drive",
+      "scheduled_time": "2025-09-26T14:00:00",
+      "status": "scheduled"
+    },
+    {
+      "driver_username": "charlie_driver",
+      "street_name": "Maple Lane",
+      "scheduled_time": "2025-09-26T08:30:00",
+      "status": "on the way"
+    },
+    {
+      "driver_username": "charlie_driver",
+      "street_name": "Cedar Boulevard",
+      "scheduled_time": "2025-09-26T16:45:00",
+      "status": "scheduled"
+    },
+    {
+      "driver_username": "diana_driver",
+      "street_name": "Birch Way",
+      "scheduled_time": "2025-09-25T15:20:00",
+      "status": "completed"
+    },
+    {
+      "driver_username": "diana_driver",
+      "street_name": "Willow Street",
+      "scheduled_time": "2025-09-27T12:00:00",
+      "status": "scheduled"
+    }
+  ],
+  "requests": [
+    {
+      "resident_username": "john_resident",
+      "route_driver": "alice_driver",
+      "route_street": "Main Street",
+      "route_scheduled_time": "2025-09-26T09:00:00",
+      "quantity": 3,
+      "notes": "Need fresh groceries and bread",
+      "status": "requested"
+    },
+    {
+      "resident_username": "mary_resident",
+      "route_driver": "alice_driver",
+      "route_street": "Oak Avenue",
+      "route_scheduled_time": "2025-09-26T11:30:00",
+      "quantity": 2,
+      "notes": "Pharmacy pickup - prescription medicine",
+      "status": "requested"
+    },
+    {
+      "resident_username": "peter_resident",
+      "route_driver": "bob_driver",
+      "route_street": "Pine Road",
+      "route_scheduled_time": "2025-09-26T10:15:00",
+      "quantity": 5,
+      "notes": "Weekly grocery shopping",
+      "status": "requested"
+    },
+    {
+      "resident_username": "susan_resident",
+      "route_driver": "bob_driver",
+      "route_street": "Elm Drive",
+      "route_scheduled_time": "2025-09-26T14:00:00",
+      "quantity": 1,
+      "notes": "Package delivery from post office",
+      "status": "requested"
+    },
+    {
+      "resident_username": "tom_resident",
+      "route_driver": "charlie_driver",
+      "route_street": "Maple Lane",
+      "route_scheduled_time": "2025-09-26T08:30:00",
+      "quantity": 4,
+      "notes": "Hardware store supplies",
+      "status": "on the way"
+    }
+  ]
+}

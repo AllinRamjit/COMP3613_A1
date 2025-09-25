@@ -1,4 +1,4 @@
-import click, pytest, sys
+import click, pytest, sys, json
 from flask.cli import with_appcontext, AppGroup
 from datetime import datetime
 from typing import Optional
@@ -338,4 +338,182 @@ def list_stops(route_id):
     for req in requests:
         resident = User.query.get(req.resident_id)
         print(f"Request ID: {req.id}, Resident: {resident.username}, Quantity: {req.quantity}, Notes: {req.notes}, Status: {req.status}, Created At: {req.created_at.isoformat()}")
+
+
+@user_cli.command("import-test-data", help="Import test data from JSON file")
+@click.option("--file", default="test_data.json", help="Path to the JSON test data file")
+@click.option("--clear", is_flag=True, help="Clear existing data before importing")
+def import_test_data(file, clear):
+    """Import comprehensive test data from a JSON file."""
+    try:
+        # Read the JSON file
+        with open(file, 'r') as f:
+            data = json.load(f)
+        
+        if clear:
+            print("Clearing existing data...")
+            # Clear existing data in reverse dependency order
+            Request.query.delete()
+            Route.query.delete()
+            User.query.delete()
+            Street.query.delete()
+            db.session.commit()
+            print("Existing data cleared.")
+        
+        print("Importing test data...")
+        
+        # Import streets first
+        street_map = {}
+        for street_data in data.get('streets', []):
+            existing_street = Street.query.filter_by(name=street_data['name']).first()
+            if not existing_street:
+                street = Street(name=street_data['name'])
+                db.session.add(street)
+                db.session.flush()  # To get the ID
+                street_map[street_data['name']] = street.id
+                print(f"Created street: {street.name} (ID: {street.id})")
+            else:
+                street_map[street_data['name']] = existing_street.id
+                print(f"Street already exists: {existing_street.name} (ID: {existing_street.id})")
+        
+        db.session.commit()
+        
+        # Import users
+        user_map = {}
+        for user_data in data.get('users', []):
+            existing_user = User.query.filter_by(username=user_data['username']).first()
+            if not existing_user:
+                street_id = None
+                if user_data.get('street_name'):
+                    street_id = street_map.get(user_data['street_name'])
+                elif user_data.get('street_id'):
+                    street_id = user_data['street_id']
+                
+                user = User(
+                    username=user_data['username'],
+                    password=user_data['password'],
+                    role=user_data['role'],
+                    street_id=street_id
+                )
+                db.session.add(user)
+                db.session.flush()  # To get the ID
+                user_map[user_data['username']] = user.id
+                street_name = user_data.get('street_name', 'None')
+                print(f"Created user: {user.username} ({user.role}) - Street: {street_name}")
+            else:
+                user_map[user_data['username']] = existing_user.id
+                print(f"User already exists: {existing_user.username}")
+        
+        db.session.commit()
+        
+        # Import routes
+        route_map = {}
+        for route_data in data.get('routes', []):
+            driver_id = user_map.get(route_data['driver_username'])
+            street_id = street_map.get(route_data['street_name'])
+            
+            if driver_id and street_id:
+                scheduled_time = datetime.fromisoformat(route_data['scheduled_time'])
+                
+                # Create unique route key including scheduled time to handle multiple routes per driver/street
+                route_key = f"{route_data['driver_username']}_{route_data['street_name']}_{route_data['scheduled_time']}"
+                
+                # Check if route already exists
+                existing_route = Route.query.filter_by(
+                    driver_id=driver_id,
+                    street_id=street_id,
+                    scheduled_time=scheduled_time
+                ).first()
+                
+                if not existing_route:
+                    route = Route(
+                        driver_id=driver_id,
+                        street_id=street_id,
+                        scheduled_time=scheduled_time,
+                        status=route_data['status']
+                    )
+                    db.session.add(route)
+                    db.session.flush()  # To get the ID
+                    route_map[route_key] = route.id
+                    print(f"Created route: Driver {route_data['driver_username']} -> {route_data['street_name']} at {scheduled_time}")
+                else:
+                    route_map[route_key] = existing_route.id
+                    print(f"Route already exists: {route_data['driver_username']} -> {route_data['street_name']} at {scheduled_time}")
+            else:
+                print(f"Skipping route - missing driver or street: {route_data}")
+        
+        db.session.commit()
+        
+        # Import requests
+        for request_data in data.get('requests', []):
+            resident_id = user_map.get(request_data['resident_username'])
+            
+            # Use the exact scheduled time from the request if provided, otherwise find the first matching route
+            if 'route_scheduled_time' in request_data:
+                # Direct mapping using the specific scheduled time
+                route_key = f"{request_data['route_driver']}_{request_data['route_street']}_{request_data['route_scheduled_time']}"
+                route_id = route_map.get(route_key)
+                
+                if not route_id:
+                    print(f"Error: No route found for exact match: {request_data['route_driver']} -> {request_data['route_street']} at {request_data['route_scheduled_time']}")
+                    route_id = None
+            else:
+                # Legacy support: find routes by driver and street, but warn if multiple exist
+                matching_routes = []
+                for route_data in data.get('routes', []):
+                    if (route_data['driver_username'] == request_data['route_driver'] and 
+                        route_data['street_name'] == request_data['route_street']):
+                        matching_routes.append(route_data)
+                
+                if len(matching_routes) == 0:
+                    print(f"Error: No matching route found for request: {request_data['resident_username']} -> {request_data['route_driver']} on {request_data['route_street']}")
+                    route_id = None
+                elif len(matching_routes) > 1:
+                    print(f"Warning: Multiple routes found for {request_data['route_driver']} -> {request_data['route_street']}. Add 'route_scheduled_time' to request for deterministic matching. Using first route.")
+                    route_key = f"{request_data['route_driver']}_{request_data['route_street']}_{matching_routes[0]['scheduled_time']}"
+                    route_id = route_map.get(route_key)
+                else:
+                    # Single route found, use it
+                    route_key = f"{request_data['route_driver']}_{request_data['route_street']}_{matching_routes[0]['scheduled_time']}"
+                    route_id = route_map.get(route_key)
+            
+            if resident_id and route_id:
+                # Check if request already exists
+                existing_request = Request.query.filter_by(
+                    resident_id=resident_id,
+                    route_id=route_id
+                ).first()
+                
+                if not existing_request:
+                    request = Request(
+                        resident_id=resident_id,
+                        route_id=route_id,
+                        quantity=request_data['quantity'],
+                        notes=request_data['notes'],
+                        status=request_data['status']
+                    )
+                    db.session.add(request)
+                    print(f"Created request: {request_data['resident_username']} -> Route {route_id} (Qty: {request_data['quantity']})")
+                else:
+                    print(f"Request already exists: {request_data['resident_username']} -> Route {route_id}")
+            else:
+                print(f"Skipping request - missing resident or route: {request_data}")
+        
+        db.session.commit()
+        
+        # Print summary
+        print("\n=== Import Summary ===")
+        print(f"Streets: {Street.query.count()}")
+        print(f"Users: {User.query.count()}")
+        print(f"Routes: {Route.query.count()}")
+        print(f"Requests: {Request.query.count()}")
+        print("Test data import completed successfully!")
+        
+    except FileNotFoundError:
+        print(f"Error: File '{file}' not found.")
+    except json.JSONDecodeError as e:
+        print(f"Error: Invalid JSON format in '{file}': {e}")
+    except Exception as e:
+        print(f"Error importing test data: {e}")
+        db.session.rollback()
 
