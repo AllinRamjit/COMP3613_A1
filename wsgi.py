@@ -72,7 +72,7 @@ user_cli = AppGroup('user', help='User object commands')
 @click.argument("password", default="robpass")
 @click.option("--role", required=True, type=click.Choice(['driver', 'resident'], case_sensitive=False), help="Role of the user")
 @click.option("--street-id", required=False, default=None, help="Street id of the resident user")
-def create_user(username, password, role, street_id):
+def create_user_command(username, password, role, street_id):
     if role == 'resident' and street_id is None:
         print("Resident users must have a street_id. You can add street_id later using the update-user-street command")
         return
