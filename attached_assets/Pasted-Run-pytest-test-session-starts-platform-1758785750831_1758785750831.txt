@@ -1,0 +1,91 @@
+Run pytest
+============================= test session starts ==============================
+platform linux -- Python 3.9.18, pytest-7.0.1, pluggy-1.6.0
+rootdir: /home/runner/work/COMP3613_A1/COMP3613_A1, configfile: pytest.ini, testpaths: App/tests
+collected 8 items
+
+App/tests/test_app.py::UserUnitTests::test_check_password PASSED         [ 12%]
+App/tests/test_app.py::UserUnitTests::test_get_json PASSED               [ 25%]
+App/tests/test_app.py::UserUnitTests::test_hashed_password FAILED        [ 37%]
+App/tests/test_app.py::UserUnitTests::test_new_user PASSED               [ 50%]
+App/tests/test_app.py::test_authenticate PASSED                          [ 62%]
+App/tests/test_app.py::UsersIntegrationTests::test_create_user PASSED    [ 75%]
+App/tests/test_app.py::UsersIntegrationTests::test_get_all_users_json PASSED [ 87%]
+App/tests/test_app.py::UsersIntegrationTests::test_update_user PASSED    [100%]
+
+=================================== FAILURES ===================================
+______________________ UserUnitTests.test_hashed_password ______________________
+
+self = <App.tests.test_app.UserUnitTests testMethod=test_hashed_password>
+
+    def test_hashed_password(self):
+        password = "mypass"
+>       hashed = generate_password_hash(password, method='sha256')
+
+App/tests/test_app.py:36: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/hostedtoolcache/Python/3.9.18/x64/lib/python3.9/site-packages/werkzeug/security.py:108: in generate_password_hash
+    h, actual_method = _hash_internal(method, salt, password)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+method = 'sha256', salt = 'GdZSu8WoU1xrFRgf', password = 'mypass'
+
+    def _hash_internal(method: str, salt: str, password: str) -> tuple[str, str]:
+        method, *args = method.split(":")
+        salt_bytes = salt.encode()
+        password_bytes = password.encode()
+    
+        if method == "scrypt":
+            if not args:
+                n = 2**15
+                r = 8
+                p = 1
+            else:
+                try:
+                    n, r, p = map(int, args)
+                except ValueError:
+                    raise ValueError("'scrypt' takes 3 arguments.") from None
+    
+            maxmem = 132 * n * r * p  # ideally 128, but some extra seems needed
+            return (
+                hashlib.scrypt(
+                    password_bytes, salt=salt_bytes, n=n, r=r, p=p, maxmem=maxmem
+                ).hex(),
+                f"scrypt:{n}:{r}:{p}",
+            )
+        elif method == "pbkdf2":
+            len_args = len(args)
+    
+            if len_args == 0:
+                hash_name = "sha256"
+                iterations = DEFAULT_PBKDF2_ITERATIONS
+            elif len_args == 1:
+                hash_name = args[0]
+                iterations = DEFAULT_PBKDF2_ITERATIONS
+            elif len_args == 2:
+                hash_name = args[0]
+                iterations = int(args[1])
+            else:
+                raise ValueError("'pbkdf2' takes 2 arguments.")
+    
+            return (
+                hashlib.pbkdf2_hmac(
+                    hash_name, password_bytes, salt_bytes, iterations
+                ).hex(),
+                f"pbkdf2:{hash_name}:{iterations}",
+            )
+        else:
+>           raise ValueError(f"Invalid hash method '{method}'.")
+E           ValueError: Invalid hash method 'sha256'.
+
+/opt/hostedtoolcache/Python/3.9.18/x64/lib/python3.9/site-packages/werkzeug/security.py:70: ValueError
+=============================== warnings summary ===============================
+../../../../../opt/hostedtoolcache/Python/3.9.18/x64/lib/python3.9/site-packages/flask_admin/contrib/__init__.py:2
+  /opt/hostedtoolcache/Python/3.9.18/x64/lib/python3.9/site-packages/flask_admin/contrib/__init__.py:2: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+    __import__('pkg_resources').declare_namespace(__name__)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED App/tests/test_app.py::UserUnitTests::test_hashed_password - ValueErro...
+==================== 1 failed, 7 passed, 1 warning in 1.25s ====================
+Error: Process completed with exit code 1.
