@@ -36,6 +36,7 @@ def get_user(user_id: int, user_role:Optional[str] = None):
         return None
     if user_role and user.role != user_role:
         print(f"User {user.id} is not a {user_role}. They are {user.role}")
+        return None
     return user
 
 def get_street(street_id: int):
@@ -245,6 +246,9 @@ def manage_requests(request_id, action):
 @click.option("--driver_id", required=True, type=int, help="ID of the driver to update")
 def driver_status(driver_id):
     driver = get_user(driver_id, user_role="driver")
+    if not driver:
+        return
+    
     curr_time = datetime.utcnow()
     next_request = Route.query.filter(Route.scheduled_time >= curr_time, Route.status == 'scheduled').order_by(Route.scheduled_time.asc()).first()
     current_request = Route.query.filter(Route.driver_id == driver.id, Route.status.in_(["on the way", "arrived"])).first()
@@ -254,7 +258,7 @@ def driver_status(driver_id):
         print(f"Current Route: ID = {current_request.id} on {street.name} scheduled for {current_request.scheduled_time.isoformat()} with status {current_request.status}.")
     else:
         print(f"No current deliveries.")
-    if next_request and (not current_request or next_request.id != current_request.id):
+    if next_request and next_request.driver_id == driver.id and (not current_request or next_request.id != current_request.id):
         street = Street.query.get(next_request.street_id)
         print(f"Next Request: Driver {driver.username} is scheduled to go to street {street.name} at {next_request.scheduled_time.isoformat()}.")
     elif not current_request:
@@ -266,6 +270,8 @@ def driver_status(driver_id):
 @click.option("--lng", required=True, type=float, help="Current longitude of the driver")
 def update_location(driver_id, lat, lng):
     driver = get_user(driver_id, user_role="driver")
+    if not driver:
+        return
     route = Route.query.filter(Route.driver_id == driver.id, Route.status.in_(["on the way", "arrived"])).order_by(Route.scheduled_time.asc()).first()
     if not route:
         print(f"Driver {driver.username} does not have an active route to update location for.")
