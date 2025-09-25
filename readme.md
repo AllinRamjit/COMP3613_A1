@@ -54,31 +54,243 @@ in configuration information via environment tab of your render project's dashbo
 
 ![perms](./images/fig1.png)
 
-# Flask Commands
+# Flask CLI Commands
 
-wsgi.py is a utility script for performing various tasks related to the project. You can use it to import and test any code in the project. 
-You just need create a manager command function, for example:
+The application provides a comprehensive set of CLI commands for managing the delivery/transportation system. All commands are executed through the Flask CLI using `wsgi.py`.
 
-```python
-# inside wsgi.py
+## Command Structure
 
-user_cli = AppGroup('user', help='User object commands')
-
-@user_cli.cli.command("create-user")
-@click.argument("username")
-@click.argument("password")
-def create_user_command(username, password):
-    create_user(username, password)
-    print(f'{username} created!')
-
-app.cli.add_command(user_cli) # add the group to the cli
-
-```
-
-Then execute the command invoking with flask cli with command name and the relevant parameters
+Commands are organized into groups for better organization:
 
 ```bash
-$ flask user create bob bobpass
+export FLASK_APP=wsgi.py
+flask <group> <command> [options]
+```
+
+## Database Management
+
+### Initialize Database
+Initialize and seed the database with default data:
+```bash
+flask init
+```
+
+### Import Test Data
+Import comprehensive test data from JSON file:
+```bash
+# Import test data (preserves existing data)
+flask user import-test-data
+
+# Clear existing data and import fresh
+flask user import-test-data --clear
+
+# Import from custom file
+flask user import-test-data --file my_data.json
+```
+
+## User Management Commands
+
+All user management commands use the `flask user` prefix:
+
+### Create Users
+Create users with different roles:
+```bash
+# Create a driver
+flask user create alice alicepass --role driver
+
+# Create a resident with street assignment
+flask user create john johnpass --role resident --street-id 1
+```
+
+### List Users
+Display users in different formats:
+```bash
+# List users (object format)
+flask user list
+
+# List users in JSON format
+flask user list json
+```
+
+### Manage Streets
+Add and manage street locations:
+```bash
+# Add a new street
+flask user add-street --name "Main Street"
+
+# Update user's street assignment
+flask user update-user-street --user_id 2 --street_id 1
+```
+
+## Route Management Commands
+
+### Schedule Routes
+Create delivery routes for drivers:
+```bash
+# Schedule a route for a driver
+flask user schedule-route --driver_id 3 --street_id 1 --time "2025-09-26T09:00:00"
+```
+
+### List Routes
+View scheduled routes with optional filtering:
+```bash
+# List all routes
+flask user list-routes
+
+# List routes by status
+flask user list-routes --status scheduled
+flask user list-routes --status "on the way"
+flask user list-routes --status arrived
+flask user list-routes --status completed
+flask user list-routes --status cancelled
+```
+
+### Route Lifecycle Management
+Control route progression through different states:
+```bash
+# Start a scheduled route
+flask user start-route --route_id 1
+
+# Mark driver as arrived at destination
+flask user arrive --route_id 1
+
+# Complete a route
+flask user complete-route --route_id 1
+
+# Cancel a route
+flask user cancel-route --route_id 2
+
+# Manually set route status
+flask user set-route-status --route_id 1 --status "on the way"
+```
+
+## Request Management Commands
+
+### Create Stop Requests
+Residents can request stops on routes:
+```bash
+# Create a stop request
+flask user request-stop --resident_id 2 --route_id 1 --quantity 3 --notes "Need groceries"
+```
+
+### Manage Requests
+Drivers can manage incoming requests:
+```bash
+# Accept a request
+flask user manage-requests --request_id 1 --action accept
+
+# Decline a request
+flask user manage-requests --request_id 1 --action decline
+
+# Mark request as fulfilled
+flask user manage-requests --request_id 1 --action fulfill
+
+# Cancel a request
+flask user manage-requests --request_id 1 --action cancel
+```
+
+### View Requests
+List stops and view resident inboxes:
+```bash
+# List all stops for a route
+flask user list-stops --route_id 1
+
+# View resident's inbox (upcoming routes on their street)
+flask user view-inbox --resident_id 2
+```
+
+## Driver Operations Commands
+
+### Location and Status Management
+Track driver locations and check status:
+```bash
+# Update driver's GPS location
+flask user update-location --driver_id 3 --lat 40.7128 --lng -74.0060
+
+# Check driver's current status and upcoming routes
+flask user driver-status --driver_id 3
+```
+
+## Testing Commands
+
+### Run Test Suite
+Execute automated tests:
+```bash
+# Run all user-related tests
+flask test user
+
+# Run only unit tests
+flask test user unit
+
+# Run only integration tests
+flask test user int
+```
+
+## Command Examples Workflow
+
+Here's a complete workflow example demonstrating the system:
+
+```bash
+# 1. Initialize database
+flask init
+
+# 2. Import comprehensive test data
+flask user import-test-data --clear
+
+# 3. Check imported users
+flask user list
+
+# 4. View all scheduled routes
+flask user list-routes
+
+# 5. Start a route
+flask user start-route --route_id 1
+
+# 6. Update driver location
+flask user update-location --driver_id 1 --lat 40.7580 --lng -73.9855
+
+# 7. Mark arrival
+flask user arrive --route_id 1
+
+# 8. Create a stop request
+flask user request-stop --resident_id 5 --route_id 1 --quantity 2 --notes "Emergency supplies"
+
+# 9. Accept the request
+flask user manage-requests --request_id 1 --action accept
+
+# 10. Complete the route
+flask user complete-route --route_id 1
+
+# 11. Check driver status
+flask user driver-status --driver_id 1
+```
+
+## Command Reference Quick Guide
+
+| Category | Command | Purpose |
+|----------|---------|---------|
+| **Database** | `flask init` | Initialize database |
+| **Data** | `flask user import-test-data` | Import test data |
+| **Users** | `flask user create` | Create new user |
+| **Users** | `flask user list` | List all users |
+| **Streets** | `flask user add-street` | Add new street |
+| **Routes** | `flask user schedule-route` | Schedule new route |
+| **Routes** | `flask user list-routes` | View all routes |
+| **Routes** | `flask user start-route` | Start route |
+| **Routes** | `flask user arrive` | Mark arrival |
+| **Routes** | `flask user complete-route` | Complete route |
+| **Requests** | `flask user request-stop` | Create stop request |
+| **Requests** | `flask user manage-requests` | Handle requests |
+| **Requests** | `flask user list-stops` | View route stops |
+| **Drivers** | `flask user driver-status` | Check driver status |
+| **Drivers** | `flask user update-location` | Update GPS location |
+| **Testing** | `flask test user` | Run test suite |
+
+All commands include built-in help. Use `--help` with any command to see detailed options:
+```bash
+flask user --help
+flask user create --help
+flask user schedule-route --help
 ```
 
 
