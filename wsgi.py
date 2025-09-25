@@ -254,7 +254,7 @@ def driver_status(driver_id):
         return
     
     curr_time = datetime.utcnow()
-    next_request = Route.query.filter(Route.scheduled_time >= curr_time, Route.status == 'scheduled').order_by(Route.scheduled_time.asc()).first()
+    next_request = Route.query.filter(Route.driver_id == driver.id, Route.scheduled_time >= curr_time, Route.status == 'scheduled').order_by(Route.scheduled_time.asc()).first()
     current_request = Route.query.filter(Route.driver_id == driver.id, Route.status.in_(["on the way", "arrived"])).first()
 
     if current_request:
