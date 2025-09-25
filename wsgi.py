@@ -76,7 +76,7 @@ def create_user(username, password, role, street_id):
         print("Resident users must have a street_id. You cab add street_id later using the update-user-street command")
     if street_id is not None:
         street = get_street(street_id)
-        u = User(username=username, password=password, role=role, street=street.id)
+        u = User(username=username, password=password, role=role, street_id=street.id)
         db.session.add(u)
         db.session.commit()
         print(f'User {u.username} created with id {u.id} and street {street.name}')

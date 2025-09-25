@@ -11,9 +11,11 @@ class User(db.Model):
 
     ##street = db.relationship('Street', backref=db.backref('residents', lazy=True))
 
-    def __init__(self, username, password):
+    def __init__(self, username, password, role='user', street_id=None):
         self.username = username
         self.set_password(password)
+        self.role = role
+        self.street_id = street_id
 
     def get_json(self):
         return{
