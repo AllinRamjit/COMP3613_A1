@@ -2,9 +2,14 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from App.database import db
 
 class User(db.Model):
+    __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
-    username =  db.Column(db.String(20), nullable=False, unique=True)
-    password = db.Column(db.String(256), nullable=False)
+    username = db.Column(db.String(20), nullable=False)
+    password = db.Column(db.String(128), nullable=False)
+    role = db.Column(db.String(20), nullable=False, default='user')
+    street_id = db.Column(db.Integer, db.ForeignKey('streets.id'), nullable=True)
+
+    ##street = db.relationship('Street', backref=db.backref('residents', lazy=True))
 
     def __init__(self, username, password):
         self.username = username
@@ -23,4 +28,7 @@ class User(db.Model):
     def check_password(self, password):
         """Check hashed password."""
         return check_password_hash(self.password, password)
+    
+    def __repr__(self):
+        return f"<User id={self.id} username={self.username} role={self.role}>"
 
